@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -21,14 +21,21 @@ class SchedulingService:
 
     @staticmethod
     def local_to_utc(dt_local, tz_name):
-        tz = ZoneInfo(tz_name)
+        try:
+            tz = ZoneInfo(tz_name)
+        except (ZoneInfoNotFoundError, ValueError, TypeError, KeyError):
+            tz = ZoneInfo("UTC")
         if timezone.is_naive(dt_local):
             dt_local = timezone.make_aware(dt_local, tz)
         return dt_local.astimezone(ZoneInfo("UTC"))
 
     @staticmethod
     def utc_to_local(dt_utc, tz_name):
-        return dt_utc.astimezone(ZoneInfo(tz_name))
+        try:
+            tz = ZoneInfo(tz_name)
+        except (ZoneInfoNotFoundError, ValueError, TypeError, KeyError):
+            tz = ZoneInfo("UTC")
+        return dt_utc.astimezone(tz)
 
     @classmethod
     def has_conflict(cls, tutor, start_utc, end_utc, exclude_booking_id=None):
@@ -70,7 +77,8 @@ class SchedulingService:
 
         price = 0 if is_free_demo else tutor_subject.hourly_rate
         duration_hours = (end_utc - start_utc).total_seconds() / 3600
-        total_price = price * duration_hours if not is_free_demo else 0
+        from decimal import Decimal
+        total_price = price * Decimal(duration_hours) if not is_free_demo else 0
 
         status = Booking.Status.REQUESTED
         if is_free_demo and tutor.auto_confirm_bookings:

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -95,7 +95,10 @@ def book_session(request, tutor_id, subject_id):
             date = form.cleaned_data["date"]
             start_time = form.cleaned_data["start_time"]
             duration = form.cleaned_data["duration_minutes"]
-            tz = ZoneInfo(student.timezone)
+            try:
+                tz = ZoneInfo(student.timezone)
+            except (ZoneInfoNotFoundError, ValueError, TypeError, KeyError):
+                tz = ZoneInfo("UTC")
             start_local = datetime.combine(date, start_time, tzinfo=tz)
             end_local = start_local + timedelta(minutes=duration)
             start_utc = SchedulingService.local_to_utc(start_local, student.timezone)
@@ -121,7 +124,7 @@ def book_session(request, tutor_id, subject_id):
                     from sessions_live.services import SessionService
                     SessionService.ensure_room(booking)
                 messages.success(request, "Booking created successfully.")
-                return redirect("profiles:student_dashboard")
+                return redirect("scheduling:booking_success", pk=booking.pk)
             except ValidationError as e:
                 messages.error(request, str(e))
     else:
@@ -142,3 +145,11 @@ def join_group(request, pk):
     except ValidationError as e:
         messages.error(request, str(e))
     return redirect("profiles:student_dashboard")
+
+
+@login_required
+@role_required("STUDENT")
+def booking_success(request, pk):
+    student = get_object_or_404(StudentProfile, user=request.user)
+    booking = get_object_or_404(Booking, pk=pk, student=student)
+    return render(request, "scheduling/booking_success.html", {"booking": booking})

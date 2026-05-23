@@ -20,7 +20,7 @@ def mock_checkout(request, booking_id):
         provider = get_payment_provider()
         provider.mark_paid(booking, gateway_id=f"mock_{booking_id}")
         messages.success(request, "Payment successful (mock).")
-        return redirect("profiles:student_dashboard")
+        return redirect("scheduling:booking_success", pk=booking.pk)
     return render(request, "payments/mock_checkout.html", {"booking": booking})
 
 
@@ -28,7 +28,7 @@ def mock_checkout(request, booking_id):
 def payment_success(request, booking_id):
     booking = get_object_or_404(Booking, pk=booking_id, student__user=request.user)
     messages.success(request, "Payment received. Your session is confirmed.")
-    return redirect("profiles:student_dashboard")
+    return redirect("scheduling:booking_success", pk=booking.pk)
 
 
 @login_required

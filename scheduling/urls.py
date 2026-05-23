@@ -12,5 +12,6 @@ urlpatterns = [
     path("bookings/<int:pk>/decline/", views.booking_decline, name="booking_decline"),
     path("bookings/<int:pk>/complete/", views.booking_complete, name="booking_complete"),
     path("book/<int:tutor_id>/subject/<int:subject_id>/", views.book_session, name="book_session"),
+    path("bookings/<int:pk>/success/", views.booking_success, name="booking_success"),
     path("group/<int:pk>/join/", views.join_group, name="join_group"),
 ]

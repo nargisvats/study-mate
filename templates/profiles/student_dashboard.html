@@ -1,2 +1,257 @@
-{% extends "base.html" %}{% block content %}<div class="container"><h1>Student dashboard</h1>
-{% for b in upcoming %}<p>{{ b.tutor }} {{ b.start_utc }} <a href="{% url 'sessions_live:room' b.pk %}">Join</a></p>{% endfor %}</div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+  .dash-hero {
+    background: linear-gradient(135deg, #6366f1 0%, #0ea5e9 100%);
+    border-radius: 24px;
+    padding: 2.5rem 2.5rem;
+    color: white;
+    margin-bottom: 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .dash-hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 220px; height: 220px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+  .dash-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 30%;
+    width: 180px; height: 180px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+  }
+  .dash-hero h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.25rem; }
+  .dash-hero p { opacity: 0.85; font-size: 1rem; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+  .stat-pill {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(15,23,42,0.06);
+    border: 1px solid rgba(226,232,240,0.7);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  .stat-pill:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(15,23,42,0.1); }
+  .stat-pill .icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem;
+    margin-bottom: 0.25rem;
+  }
+  .stat-pill .val { font-size: 2rem; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+  .stat-pill .lbl { font-size: 0.8rem; font-weight: 600; color: #64748b; }
+  .icon-indigo { background: rgba(99,102,241,0.1); }
+  .icon-sky { background: rgba(14,165,233,0.1); }
+  .icon-emerald { background: rgba(16,185,129,0.1); }
+  .icon-amber { background: rgba(245,158,11,0.1); }
+
+  .section-label {
+    font-size: 1.25rem; font-weight: 800; letter-spacing: -0.3px;
+    margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 0.65rem;
+  }
+  .section-label .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #0ea5e9);
+    display: inline-block;
+  }
+
+  .booking-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid rgba(226,232,240,0.8);
+    box-shadow: 0 4px 16px rgba(15,23,42,0.05);
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+  }
+  .booking-card:hover { transform: translateX(4px); box-shadow: 0 8px 24px rgba(15,23,42,0.09); }
+  .booking-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #0ea5e9);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 1.25rem; font-weight: 800;
+    flex-shrink: 0;
+  }
+  .booking-info { flex: 1; min-width: 0; }
+  .booking-info .tutor-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .booking-info .booking-meta { font-size: 0.82rem; color: #64748b; font-weight: 500; }
+  .booking-actions { display: flex; gap: 0.6rem; flex-shrink: 0; }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.3rem 0.75rem; border-radius: 999px;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.2px;
+  }
+  .status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .badge-confirmed { background: #ecfdf5; color: #065f46; }
+  .badge-confirmed::before { background: #10b981; }
+  .badge-pending { background: #fffbeb; color: #92400e; }
+  .badge-pending::before { background: #f59e0b; }
+  .badge-completed { background: #f0f9ff; color: #0c4a6e; }
+  .badge-completed::before { background: #0ea5e9; }
+  .badge-requested { background: #f5f3ff; color: #4c1d95; }
+  .badge-requested::before { background: #8b5cf6; }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .qa-card {
+    background: white;
+    border: 1px solid rgba(226,232,240,0.8);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(15,23,42,0.04);
+  }
+  .qa-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(15,23,42,0.1); border-color: rgba(99,102,241,0.3); }
+  .qa-card .qa-icon { font-size: 1.75rem; margin-bottom: 0.25rem; }
+  .qa-card .qa-title { font-weight: 700; font-size: 0.95rem; }
+  .qa-card .qa-desc { font-size: 0.8rem; color: #64748b; }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: white;
+    border-radius: 16px;
+    border: 1px dashed rgba(226,232,240,0.8);
+  }
+  .empty-state .es-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .empty-state h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .empty-state p { color: #64748b; font-size: 0.9rem; margin-bottom: 1.25rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Hero greeting -->
+  <div class="dash-hero">
+    <h1>👋 Welcome back, {{ profile.display_name }}!</h1>
+    <p>Ready to learn something new today? Your tutors are waiting.</p>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat-pill">
+      <div class="icon icon-indigo">📅</div>
+      <div class="val">{{ upcoming|length }}</div>
+      <div class="lbl">Upcoming Sessions</div>
+    </div>
+    <div class="stat-pill">
+      <div class="icon icon-emerald">✅</div>
+      <div class="val">{{ past|length }}</div>
+      <div class="lbl">Completed Sessions</div>
+    </div>
+    <div class="stat-pill">
+      <div class="icon icon-sky">🎓</div>
+      <div class="val">{{ profile.timezone|default:"UTC" }}</div>
+      <div class="lbl">Your Timezone</div>
+    </div>
+    <div class="stat-pill">
+      <div class="icon icon-amber">🌍</div>
+      <div class="val">{{ profile.country|default:"—" }}</div>
+      <div class="lbl">Your Country</div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="section-label"><span class="dot"></span>Quick Actions</div>
+  <div class="quick-actions">
+    <a href="{% url 'catalog:tutor_search' %}" class="qa-card">
+      <div class="qa-icon">🔍</div>
+      <div class="qa-title">Find a Tutor</div>
+      <div class="qa-desc">Browse and book verified tutors</div>
+    </a>
+    <a href="{% url 'profiles:student_edit' %}" class="qa-card">
+      <div class="qa-icon">✏️</div>
+      <div class="qa-title">Edit Profile</div>
+      <div class="qa-desc">Update your learning preferences</div>
+    </a>
+    <a href="{% url 'notifications:list' %}" class="qa-card">
+      <div class="qa-icon">🔔</div>
+      <div class="qa-title">Notifications</div>
+      <div class="qa-desc">Check your recent alerts</div>
+    </a>
+  </div>
+
+  <!-- Upcoming Sessions -->
+  <div class="section-label"><span class="dot"></span>Upcoming Sessions</div>
+  {% if upcoming %}
+    {% for b in upcoming %}
+    <div class="booking-card">
+      <div class="booking-avatar">{{ b.tutor.display_name|first|upper }}</div>
+      <div class="booking-info">
+        <div class="tutor-name">{{ b.tutor.display_name }}</div>
+        <div class="booking-meta">{{ b.subject.name }} &middot; {{ b.start_utc|date:"M j, Y, g:i a" }} UTC</div>
+      </div>
+      <div class="booking-actions">
+        {% if b.status == 'CONFIRMED' or b.status == 'IN_PROGRESS' %}
+          <span class="status-badge badge-confirmed">Confirmed</span>
+          <a href="{% url 'sessions_live:room' b.pk %}" class="btn btn-primary btn-sm">Join</a>
+        {% elif b.status == 'PENDING_PAYMENT' %}
+          <span class="status-badge badge-pending">Pay Now</span>
+          <a href="{% url 'payments:mock_checkout' b.pk %}" class="btn btn-primary btn-sm">Pay</a>
+        {% elif b.status == 'REQUESTED' %}
+          <span class="status-badge badge-requested">Requested</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="es-icon">📚</div>
+      <h3>No upcoming sessions</h3>
+      <p>Find a tutor and book your first session to get started!</p>
+      <a href="{% url 'catalog:tutor_search' %}" class="btn btn-primary">Find a Tutor</a>
+    </div>
+  {% endif %}
+
+  <!-- Past Sessions -->
+  {% if past %}
+  <div class="section-label" style="margin-top:2.5rem"><span class="dot"></span>Past Sessions</div>
+  {% for b in past %}
+  <div class="booking-card" style="opacity:0.8;">
+    <div class="booking-avatar" style="background: linear-gradient(135deg,#10b981,#0ea5e9)">{{ b.tutor.display_name|first|upper }}</div>
+    <div class="booking-info">
+      <div class="tutor-name">{{ b.tutor.display_name }}</div>
+      <div class="booking-meta">{{ b.subject.name }} &middot; {{ b.start_utc|date:"M j, Y, g:i a" }} UTC</div>
+    </div>
+    <div class="booking-actions">
+      <span class="status-badge badge-completed">Completed</span>
+      {% if not b.review %}
+        <a href="{% url 'reviews:leave' b.pk %}" class="btn btn-outline btn-sm">Leave Review</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}

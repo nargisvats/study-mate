@@ -1,2 +1,253 @@
-{% extends "base.html" %}{% block content %}<div class="container"><h1>Tutor dashboard</h1>
-<p>Earnings: {{ total_earnings|format_currency:"INR" }}</p>{% for b in upcoming %}<p>{{ b.student }} {{ b.start_utc }}</p>{% endfor %}</div>{% endblock %}
+{% extends "base.html" %}
+{% load currency_tags %}
+{% block title %}Tutor Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+  .dash-hero {
+    background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);
+    border-radius: 24px;
+    padding: 2.5rem;
+    color: white;
+    margin-bottom: 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .dash-hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 220px; height: 220px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+  .dash-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 40%;
+    width: 180px; height: 180px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+  }
+  .dash-hero h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.25rem; }
+  .dash-hero p { opacity: 0.85; font-size: 1rem; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+    border-radius: 999px;
+    padding: 0.3rem 0.85rem;
+    font-size: 0.8rem; font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+  .stat-pill {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(15,23,42,0.06);
+    border: 1px solid rgba(226,232,240,0.7);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  .stat-pill:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(15,23,42,0.1); }
+  .stat-pill .icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; margin-bottom: 0.25rem; }
+  .stat-pill .val { font-size: 2rem; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+  .stat-pill .lbl { font-size: 0.8rem; font-weight: 600; color: #64748b; }
+  .icon-indigo { background: rgba(99,102,241,0.1); }
+  .icon-emerald { background: rgba(16,185,129,0.1); }
+  .icon-amber { background: rgba(245,158,11,0.1); }
+  .icon-sky { background: rgba(14,165,233,0.1); }
+
+  .section-label {
+    font-size: 1.25rem; font-weight: 800; letter-spacing: -0.3px;
+    margin-bottom: 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-label .dot-title { display: flex; align-items: center; gap: 0.65rem; }
+  .section-label .dot { width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #0ea5e9); display: inline-block; }
+
+  .booking-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid rgba(226,232,240,0.8);
+    box-shadow: 0 4px 16px rgba(15,23,42,0.05);
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: all 0.3s ease;
+    margin-bottom: 0.85rem;
+  }
+  .booking-card:hover { transform: translateX(4px); box-shadow: 0 8px 24px rgba(15,23,42,0.09); }
+  .booking-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #0ea5e9);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 1.1rem; font-weight: 800; flex-shrink: 0;
+  }
+  .booking-info { flex: 1; min-width: 0; }
+  .booking-info .student-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.2rem; }
+  .booking-info .booking-meta { font-size: 0.82rem; color: #64748b; font-weight: 500; }
+  .booking-actions { display: flex; gap: 0.6rem; flex-shrink: 0; align-items: center; }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.3rem 0.75rem; border-radius: 999px;
+    font-size: 0.78rem; font-weight: 700;
+  }
+  .status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .badge-confirmed { background: #ecfdf5; color: #065f46; }
+  .badge-confirmed::before { background: #10b981; }
+  .badge-pending { background: #fffbeb; color: #92400e; }
+  .badge-pending::before { background: #f59e0b; }
+  .badge-requested { background: #f5f3ff; color: #4c1d95; }
+  .badge-requested::before { background: #8b5cf6; }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .qa-card {
+    background: white;
+    border: 1px solid rgba(226,232,240,0.8);
+    border-radius: 16px; padding: 1.5rem;
+    text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(15,23,42,0.04);
+  }
+  .qa-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(15,23,42,0.1); border-color: rgba(99,102,241,0.3); }
+  .qa-card .qa-icon { font-size: 1.75rem; margin-bottom: 0.25rem; }
+  .qa-card .qa-title { font-weight: 700; font-size: 0.95rem; }
+  .qa-card .qa-desc { font-size: 0.8rem; color: #64748b; }
+
+  .earnings-banner {
+    background: linear-gradient(135deg, #ecfdf5 0%, #f0f9ff 100%);
+    border: 1px solid #a7f3d0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .earnings-icon { font-size: 2.5rem; }
+  .earnings-label { font-size: 0.85rem; color: #064e3b; font-weight: 600; }
+  .earnings-amount { font-size: 2rem; font-weight: 800; color: #065f46; letter-spacing: -1px; }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; background: white; border-radius: 16px; border: 1px dashed rgba(226,232,240,0.8); }
+  .empty-state .es-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .empty-state h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .empty-state p { color: #64748b; font-size: 0.9rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Hero -->
+  <div class="dash-hero">
+    <div class="hero-badge">⭐ {{ profile.avg_rating }} avg rating &middot; {{ profile.review_count }} reviews</div>
+    <h1>Hello, {{ profile.display_name }}! 👨‍🏫</h1>
+    <p>{{ profile.get_verification_status_display }} &middot; {{ profile.years_experience }} years experience &middot; {{ profile.country }}</p>
+  </div>
+
+  <!-- Earnings Banner -->
+  <div class="earnings-banner">
+    <div class="earnings-icon">💰</div>
+    <div>
+      <div class="earnings-label">Total Platform Earnings</div>
+      <div class="earnings-amount">${{ total_earnings }}</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-pill">
+      <div class="icon icon-indigo">📅</div>
+      <div class="val">{{ upcoming|length }}</div>
+      <div class="lbl">Upcoming Sessions</div>
+    </div>
+    <div class="stat-pill">
+      <div class="icon icon-amber">⭐</div>
+      <div class="val">{{ profile.avg_rating }}</div>
+      <div class="lbl">Average Rating</div>
+    </div>
+    <div class="stat-pill">
+      <div class="icon icon-emerald">💬</div>
+      <div class="val">{{ profile.review_count }}</div>
+      <div class="lbl">Total Reviews</div>
+    </div>
+    <div class="stat-pill">
+      <div class="icon icon-sky">🏆</div>
+      <div class="val">{{ profile.years_experience }}yr</div>
+      <div class="lbl">Experience</div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="section-label"><span class="dot-title"><span class="dot"></span>Quick Actions</span></div>
+  <div class="quick-actions">
+    <a href="{% url 'scheduling:availability_list' %}" class="qa-card">
+      <div class="qa-icon">🗓️</div>
+      <div class="qa-title">Availability</div>
+      <div class="qa-desc">Manage your open time slots</div>
+    </a>
+    <a href="{% url 'scheduling:booking_manage' %}" class="qa-card">
+      <div class="qa-icon">📋</div>
+      <div class="qa-title">All Bookings</div>
+      <div class="qa-desc">Accept, decline and manage sessions</div>
+    </a>
+    <a href="{% url 'profiles:tutor_edit' %}" class="qa-card">
+      <div class="qa-icon">✏️</div>
+      <div class="qa-title">Edit Profile</div>
+      <div class="qa-desc">Update subjects, rates and bio</div>
+    </a>
+  </div>
+
+  <!-- Upcoming Bookings -->
+  <div class="section-label">
+    <span class="dot-title"><span class="dot"></span>Upcoming Sessions</span>
+    <a href="{% url 'scheduling:booking_manage' %}" class="btn btn-outline btn-sm">View All →</a>
+  </div>
+  {% if upcoming %}
+    {% for b in upcoming %}
+    <div class="booking-card">
+      <div class="booking-avatar">{{ b.student.display_name|first|upper }}</div>
+      <div class="booking-info">
+        <div class="student-name">{{ b.student.display_name }}</div>
+        <div class="booking-meta">{{ b.subject.name }} &middot; {{ b.start_utc|date:"M j, Y, g:i a" }} UTC &middot; ${{ b.price_snapshot }}</div>
+      </div>
+      <div class="booking-actions">
+        {% if b.status == 'CONFIRMED' %}
+          <span class="status-badge badge-confirmed">Confirmed</span>
+          <a href="{% url 'sessions_live:room' b.pk %}" class="btn btn-primary btn-sm">Join</a>
+        {% elif b.status == 'REQUESTED' %}
+          <span class="status-badge badge-requested">Requested</span>
+          <a href="{% url 'scheduling:booking_accept' b.pk %}" class="btn btn-primary btn-sm">Accept</a>
+          <a href="{% url 'scheduling:booking_decline' b.pk %}" class="btn btn-outline btn-sm">Decline</a>
+        {% elif b.status == 'PENDING_PAYMENT' %}
+          <span class="status-badge badge-pending">Pending Pay</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="es-icon">📭</div>
+      <h3>No upcoming sessions</h3>
+      <p>Set your availability so students can find and book you!</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

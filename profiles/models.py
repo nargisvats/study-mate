@@ -1,5 +1,14 @@
 from django.conf import settings
 from django.db import models
+from django.core.exceptions import ValidationError
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+
+def validate_timezone(value):
+    try:
+        ZoneInfo(value)
+    except (ZoneInfoNotFoundError, ValueError, TypeError, KeyError):
+        raise ValidationError(f"'{value}' is not a valid time zone name (e.g. 'UTC', 'America/New_York').")
 
 
 class Language(models.Model):
@@ -14,7 +23,7 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="student_profile")
     display_name = models.CharField(max_length=120)
     country = models.CharField(max_length=64, blank=True)
-    timezone = models.CharField(max_length=64, default="UTC")
+    timezone = models.CharField(max_length=64, default="UTC", validators=[validate_timezone])
     bio = models.TextField(blank=True)
     goals = models.TextField(blank=True)
     languages = models.ManyToManyField(Language, blank=True, related_name="students")
@@ -35,7 +44,7 @@ class TutorProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="tutor_profile")
     display_name = models.CharField(max_length=120)
     country = models.CharField(max_length=64, blank=True)
-    timezone = models.CharField(max_length=64, default="UTC")
+    timezone = models.CharField(max_length=64, default="UTC", validators=[validate_timezone])
     bio = models.TextField(blank=True)
     years_experience = models.PositiveIntegerField(default=0)
     qualification = models.CharField(max_length=255, blank=True)
