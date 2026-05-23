@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="container">
+  <section class="hero">
+    <h1>Learn live with expert tutors worldwide</h1>
+    <p>StudyMate connects students and tutors for personalized 1-on-1 and group sessions across every subject, language, and hobby.</p>
+    <div class="hero-actions">
+      <a href="{% url 'catalog:tutor_search' %}" class="btn btn-primary">Find a Tutor</a>
+      <a href="{% url 'accounts:register_tutor' %}" class="btn btn-secondary">Teach on StudyMate</a>
+    </div>
+  </section>
+  <div class="card-grid">
+    <div class="card"><h3>Live 1-on-1 Sessions</h3><p>Book personalized tutoring with verified experts in your timezone.</p></div>
+    <div class="card"><h3>Transparent Reviews</h3><p>Rate tutors after every session and browse real student feedback.</p></div>
+    <div class="card"><h3>Free Demo Sessions</h3><p>Many tutors offer free intro sessions before you commit.</p></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<section class="container">
+  <h1>Platform analytics</h1>
+  <section class="dashboard-grid">
+    <article class="card stat-card"><p class="value">{{ stats.total_users }}</p><p class="label">Total users</p></article>
+    <article class="card stat-card"><p class="value">{{ stats.pending_tutors }}</p><p class="label">Pending tutors</p></article>
+    <article class="card stat-card"><p class="value">{{ stats.bookings_week }}</p><p class="label">Bookings (7d)</p></article>
+    <article class="card stat-card"><p class="value">${{ stats.revenue_week }}</p><p class="label">Revenue (7d)</p></article>
+    <article class="card stat-card"><p class="value">{{ stats.avg_rating|floatformat:1 }}</p><p class="label">Avg rating</p></article>
+    <article class="card stat-card"><p class="value">{{ stats.open_disputes }}</p><p class="label">Open disputes</p></article>
+  </section>
+  <article class="card" style="margin-top:1.5rem">
+    <h2>Pending tutor verifications</h2>
+    {% for t in pending_tutors %}
+    <p>{{ t.display_name }} ({{ t.user.email }})
+      <form method="post" action="{% url 'admin_ops:approve_tutor' t.pk %}" style="display:inline">{% csrf_token %}<button class="btn btn-sm btn-primary">Approve</button></form>
+      <form method="post" action="{% url 'admin_ops:reject_tutor' t.pk %}" style="display:inline">{% csrf_token %}<button class="btn btn-sm btn-outline">Reject</button></form>
+      <a href="/admin/profiles/tutorprofile/{{ t.pk }}/change/">Django admin</a></p>
+    {% empty %}<p>None pending.</p>{% endfor %}
+  </article>
+  <article class="card" style="margin-top:1rem">
+    <h2>Recent bookings</h2>
+    {% for b in recent_bookings %}
+    <p>{{ b.student }} / {{ b.tutor }} &mdash; {{ b.subject }} &mdash; {{ b.status }}</p>
+    {% endfor %}
+  </article>
+</section>
+{% endblock %}

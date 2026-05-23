@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}StudyMate{% endblock %} | Global Tutoring</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-inner">
+      <a href="{% url 'home' %}" class="logo">Study<span>Mate</span></a>
+      <nav class="main-nav">
+        <a href="{% url 'catalog:tutor_search' %}">Find Tutors</a>
+        {% if user.is_authenticated %}
+          {% if user.is_tutor %}
+            <a href="{% url 'profiles:tutor_dashboard' %}">Dashboard</a>
+            <a href="{% url 'scheduling:availability_list' %}">Availability</a>
+          {% elif user.is_student %}
+            <a href="{% url 'profiles:student_dashboard' %}">Dashboard</a>
+          {% elif user.is_platform_admin %}
+            <a href="{% url 'admin_ops:dashboard' %}">Admin</a>
+          {% endif %}
+          <a href="{% url 'notifications:list' %}">Notifications</a>
+          <a href="{% url 'accounts:logout' %}" class="btn btn-outline btn-sm">Logout</a>
+        {% else %}
+          <a href="{% url 'accounts:login' %}" class="btn btn-outline btn-sm">Login</a>
+          <a href="{% url 'accounts:register_student' %}" class="btn btn-primary btn-sm">Join as Student</a>
+          <a href="{% url 'accounts:register_tutor' %}" class="btn btn-secondary btn-sm">Become a Tutor</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {% if messages %}
+  <div class="container messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 StudyMate — Global live tutoring platform</p>
+    </div>
+  </footer>
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

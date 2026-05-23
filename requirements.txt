@@ -1,0 +1,11 @@
+Django>=5.0,<6.0
+python-dotenv>=1.0.0
+psycopg2-binary>=2.9.0
+mysqlclient>=2.2.0; platform_system != "Windows"
+PyMySQL>=1.1.0
+Pillow>=10.0.0
+stripe>=8.0.0
+requests>=2.31.0
+gunicorn>=21.0.0
+whitenoise>=6.0.0
+dj-database-url>=2.0.0

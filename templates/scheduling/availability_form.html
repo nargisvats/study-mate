@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="container" style="max-width:500px">
+  <article class="card"><h1>Add availability</h1>
+  <p style="color:var(--muted)">Day 0=Monday, 6=Sunday. Times in UTC.</p>
+  <form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Save</button></form>
+  </article>
+</section>
+{% endblock %}

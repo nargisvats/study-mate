@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Find Tutors{% endblock %}
+{% block content %}
+<section class="container">
+  <h1>Find tutors</h1>
+  <form class="filters" method="get">
+    <p class="form-group"><label>Subject</label>
+    <select name="subject" class="form-control"><option value="">All</option>{% for s in subjects %}<option value="{{ s.id }}"{% if filters.subject == s.id|stringformat:"s" %} selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></p>
+    <p class="form-group"><label>Country</label><input name="country" class="form-control" value="{{ filters.country|default:'' }}"></p>
+    <p class="form-group"><label>Min rating</label><input name="min_rating" type="number" step="0.1" class="form-control" value="{{ filters.min_rating|default:'' }}"></p>
+    <p class="form-group"><label>Max price</label><input name="max_price" type="number" class="form-control" value="{{ filters.max_price|default:'' }}"></p>
+    <p class="form-group"><label><input type="checkbox" name="free_demo" value="1"{% if filters.free_demo == '1' %} checked{% endif %}> Free demo only</label></p>
+    <p class="form-group"><button class="btn btn-primary">Search</button></p>
+  </form>
+  <section class="card-grid">
+  {% for tutor in tutors %}
+    <article class="card tutor-card">
+      <h3><a href="{% url 'profiles:tutor_public' tutor.pk %}">{{ tutor.display_name }}</a></h3>
+      <p class="meta">{{ tutor.country }} &middot; {{ tutor.years_experience }} yrs</p>
+      <p class="rating">Rating: {{ tutor.avg_rating }} ({{ tutor.review_count }} reviews)</p>
+      <a href="{% url 'profiles:tutor_public' tutor.pk %}" class="btn btn-primary btn-sm">View profile</a>
+    </article>
+  {% empty %}<p>No tutors found.</p>{% endfor %}
+  </section>
+</section>
+{% endblock %}

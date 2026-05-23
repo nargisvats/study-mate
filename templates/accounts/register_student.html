@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Register as Student{% endblock %}
+{% block content %}
+<div class="container" style="max-width:480px">
+  <div class="card">
+    <h1>Create student account</h1>
+    <form method="post">{% csrf_token %}
+      {% for field in form %}
+      <div class="form-group"><label>{{ field.label }}</label>{{ field }}{% if field.errors %}<small style="color:var(--danger)">{{ field.errors.0 }}</small>{% endif %}</div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary" style="width:100%">Register</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

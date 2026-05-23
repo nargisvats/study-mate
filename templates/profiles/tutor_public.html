@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load currency_tags %}
+{% block title %}{{ tutor.display_name }}{% endblock %}
+{% block content %}
+<section class="container">
+  <article class="card">
+    <h1>{{ tutor.display_name }}</h1>
+    <p>{{ tutor.country }} &middot; {{ tutor.years_experience }} years experience &middot; Rating {{ tutor.avg_rating }}</p>
+    <p>{{ tutor.bio }}</p>
+    <h3>Qualification</h3><p>{{ tutor.qualification|default:"Not specified" }}</p>
+    <h3>Subjects offered</h3>
+    {% for ts in tutor.tutor_subjects.all %}
+    <p><strong>{{ ts.subject.name }}</strong> &mdash; {{ ts.hourly_rate|format_currency:ts.currency }}/hr
+    {% if ts.offers_free_demo %}<span class="tag">Free demo</span>{% endif %}
+    <a href="{% url 'scheduling:book_session' tutor.pk ts.subject.id %}" class="btn btn-primary btn-sm">Book</a></p>
+    {% endfor %}
+    <h3>Demo videos</h3>
+    {% for d in tutor.demo_media.all %}
+    <p>{% if d.video_url %}<a href="{{ d.video_url }}" target="_blank">{{ d.title|default:"Demo" }}</a>{% else %}{{ d.title }}{% endif %}</p>
+    {% empty %}<p>No demos uploaded.</p>{% endfor %}
+    <h3>Reviews</h3>
+    {% for r in reviews %}<p>★{{ r.rating }} &mdash; {{ r.comment }}</p>{% empty %}<p>No reviews yet.</p>{% endfor %}
+  </article>
+</section>
+{% endblock %}

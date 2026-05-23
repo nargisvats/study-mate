@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Tutor Dashboard{% endblock %}
+{% block content %}
+<section class="container">
+  <header class="page-header"><h1>Tutor dashboard</h1><p>Verification: {{ profile.verification_status }}</p></header>
+  <section class="dashboard-grid">
+    <article class="card stat-card"><p class="value">${{ total_earnings }}</p><p class="label">Total earnings</p></article>
+    <article class="card stat-card"><p class="value">{{ profile.avg_rating }}</p><p class="label">Avg rating</p></article>
+  </section>
+  <article class="card">
+    <h2>Bookings</h2>
+    {% for b in upcoming %}
+    <p>{{ b.student }} &mdash; {{ b.start_utc }} ({{ b.status }})
+    {% if b.status == 'REQUESTED' %}<a href="{% url 'scheduling:booking_accept' b.pk %}">Accept</a>{% endif %}
+    {% if b.status == 'CONFIRMED' or b.status == 'IN_PROGRESS' %}<a href="{% url 'sessions_live:room' b.pk %}">Join</a>{% endif %}
+    <a href="{% url 'scheduling:booking_complete' b.pk %}">Complete</a></p>
+    {% empty %}<p>No bookings yet.</p>{% endfor %}
+    <p><a href="{% url 'scheduling:booking_manage' %}">All bookings</a> | <a href="{% url 'profiles:tutor_edit' %}">Edit profile</a></p>
+  </article>
+</section>
+{% endblock %}

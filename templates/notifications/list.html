@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<section class="container">
+  <h1>Notifications</h1>
+  {% for n in notifications %}
+  <article class="card" style="margin-bottom:0.5rem;{% if not n.is_read %}border-left:4px solid var(--primary){% endif %}">
+    <strong>{{ n.title }}</strong>
+    <p>{{ n.message }}</p>
+    <small style="color:var(--muted)">{{ n.created_at }}</small>
+    {% if not n.is_read %}
+    <form method="post" action="{% url 'notifications:mark_read' n.pk %}" style="margin-top:0.5rem">{% csrf_token %}
+    <button class="btn btn-sm btn-outline">Mark read</button></form>
+    {% endif %}
+  </article>
+  {% empty %}<p>No notifications.</p>{% endfor %}
+</section>
+{% endblock %}
