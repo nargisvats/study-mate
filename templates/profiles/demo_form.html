@@ -1,3 +1,1 @@
-{% extends "base.html" %}{% block content %}<section class="container"><article class="card"><h1>Add demo media</h1>
-<form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Save</button></form>
-</article></section>{% endblock %}
+{% extends "base.html" %}{% load currency_tags %}{% block content %}<div class="container"><div class="card"><form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Save</button></form></div></div>{% endblock %}

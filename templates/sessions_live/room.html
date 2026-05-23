@@ -1,15 +1,4 @@
-{% extends "base.html" %}
-{% block title %}Live Session{% endblock %}
-{% block content %}
-<section class="container">
-  <h1>Live session with {{ booking.tutor.display_name }}</h1>
-  <p>Subject: {{ booking.subject.name }} | {{ booking.start_utc }} UTC</p>
-  <iframe class="session-frame" src="{{ embed_url }}" allow="camera; microphone; display-capture; fullscreen"></iframe>
-  <article class="card" style="margin-top:1rem">
-    <h3>Session files</h3>
-    {% for f in files %}<p><a href="{{ f.file.url }}" target="_blank">{{ f.original_name }}</a> ({{ f.uploaded_by.username }})</p>{% empty %}<p>No files shared yet.</p>{% endfor %}
-    <form method="post" enctype="multipart/form-data" style="margin-top:1rem">{% csrf_token %}
-    {{ file_form.as_p }}<button name="upload" type="submit" class="btn btn-outline">Upload file</button></form>
-  </article>
-</section>
-{% endblock %}
+{% extends "base.html" %}{% load currency_tags %}{% block content %}<div class="container"><h1>Live session</h1>
+<iframe class="session-frame" src="{{ embed_url }}" allow="camera; microphone; display-capture"></iframe>
+<h3>Files</h3>{% for f in files %}<p><a href="{{ f.file.url }}">{{ f.original_name }}</a></p>{% endfor %}
+<form method="post" enctype="multipart/form-data">{% csrf_token %}{{ file_form.as_p }}<button name="upload" class="btn btn-outline">Upload</button></form></div>{% endblock %}

@@ -1,13 +1,2 @@
-{% extends "base.html" %}
-{% load currency_tags %}
-{% block content %}
-<section class="container" style="max-width:480px">
-  <article class="card">
-    <h1>Complete payment (demo)</h1>
-    <p>Session with <strong>{{ booking.tutor }}</strong></p>
-    <p>Amount: <strong>{{ booking.price_snapshot|format_currency:booking.currency }}</strong></p>
-    <form method="post">{% csrf_token %}
-    <button class="btn btn-primary" style="width:100%">Pay now (mock)</button></form>
-  </article>
-</section>
-{% endblock %}
+{% extends "base.html" %}{% load currency_tags %}{% block content %}<div class="container"><div class="card"><h1>Mock payment</h1><p>Amount: {{ booking.price_snapshot|format_currency:booking.currency }}</p>
+<form method="post">{% csrf_token %}<button class="btn btn-primary">Pay now (demo)</button></form></div></div>{% endblock %}

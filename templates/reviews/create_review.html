@@ -1,9 +1,2 @@
-{% extends "base.html" %}
-{% block content %}
-<section class="container" style="max-width:480px">
-  <article class="card"><h1>Review your session</h1>
-  <p>Tutor: {{ booking.tutor.display_name }}</p>
-  <form method="post">{% csrf_token %}{{ form.as_p }}
-  <button class="btn btn-primary">Submit review</button></form></article>
-</section>
-{% endblock %}
+{% extends "base.html" %}{% load currency_tags %}{% block content %}<div class="container"><div class="card"><h1>Review session</h1
+<form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Submit review</button></form></div></div>{% endblock %}

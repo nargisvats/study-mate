@@ -1,16 +1,2 @@
-{% extends "base.html" %}
-{% load currency_tags %}
-{% block title %}Book Session{% endblock %}
-{% block content %}
-<section class="container" style="max-width:520px">
-  <article class="card">
-    <h1>Book {{ tutor.display_name }}</h1>
-    <p>{{ tutor_subject.subject.name }} &mdash; {{ tutor_subject.hourly_rate|format_currency:tutor_subject.currency }}/hr</p>
-    {% if tutor_subject.offers_free_demo %}<p class="tag">Free demo available</p>{% endif %}
-    <form method="post">{% csrf_token %}
-    <input type="hidden" name="tutor_subject_id" value="{{ tutor_subject.id }}">
-    {{ form.as_p }}
-    <button class="btn btn-primary">Request booking</button></form>
-  </article>
-</section>
-{% endblock %}
+{% extends "base.html" %}{% load currency_tags %}{% block content %}<div class="container"><div class="card"><h1>Book {{ tutor.display_name }}</h1><p>{{ tutor_subject.subject }} — {{ tutor_subject.hourly_rate|format_currency:tutor_subject.currency }}/hr</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Book session</button></form></div></div>{% endblock %}

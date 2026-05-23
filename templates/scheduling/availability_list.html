@@ -1,14 +1,2 @@
-{% extends "base.html" %}
-{% block title %}Availability{% endblock %}
-{% block content %}
-<section class="container">
-  <h1>Your availability (stored in UTC)</h1>
-  <a href="{% url 'scheduling:availability_add' %}" class="btn btn-primary">Add slot</a>
-  <table class="table" style="margin-top:1rem">
-    <tr><th>Day</th><th>Start</th><th>End</th><th>Active</th></tr>
-    {% for s in slots %}
-    <tr><td>{{ s.get_day_of_week_display|default:s.day_of_week }}</td><td>{{ s.start_utc }}</td><td>{{ s.end_utc }}</td><td>{{ s.is_active }}</td></tr>
-    {% empty %}<tr><td colspan="4">No slots. Add weekly availability.</td></tr>{% endfor %}
-  </table>
-</section>
-{% endblock %}
+{% extends "base.html" %}{% load currency_tags %}{% block content %}<div class="container"><h1>Availability</h1><a href="{% url 'scheduling:availability_add' %}" class="btn btn-primary">Add slot</a>
+{% for s in slots %}<p>Day {{ s.day_of_week }}: {{ s.start_utc }} - {{ s.end_utc }}</p>{% empty %}<p>No slots.</p>{% endfor %}</div>{% endblock %}
